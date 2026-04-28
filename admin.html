@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sourdough Joe's · Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #e8e4dc;
+  --blob: #1c1a16;
+  --fg: #f0ede8;
+  --mid: rgba(232,228,220,0.88);
+  --pink: #e8a0b4;
+  --dim: rgba(232,228,220,0.15);
+  --accent: #e8a0b4;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  font-family: 'Syne', sans-serif;
+  min-height: 100vh;
+  padding: 2rem 1.2rem 4rem;
+}
+.page { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem; }
+
+.header {
+  background: var(--blob);
+  border-radius: 20px;
+  padding: 1.4rem 1.8rem;
+}
+.header h1 {
+  font-size: 2.2rem; font-weight: 800; color: var(--fg); letter-spacing: -0.01em;
+}
+.header h1 span { font-size: 0.55em; vertical-align: super; }
+.header p { font-family: 'Syne Mono', monospace; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid); margin-top: 0.3rem; }
+
+.card {
+  background: var(--blob);
+  border-radius: 20px;
+  padding: 1.8rem;
+}
+.card-title {
+  font-family: 'Syne Mono', monospace; font-size: 0.85rem;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--mid); margin-bottom: 1.2rem;
+}
+
+/* SLOTS */
+.slots-display {
+  font-size: clamp(5rem, 22vw, 8rem); font-weight: 800;
+  color: var(--fg); line-height: 1; letter-spacing: -0.04em;
+  margin-bottom: 0.4rem;
+  transition: color 0.3s;
+}
+.slots-display.warn { color: var(--pink); }
+.slots-sub { font-family: 'Syne Mono', monospace; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mid); margin-bottom: 1.2rem; }
+
+.slots-row { display: flex; align-items: center; gap: 1rem; }
+.sbtn {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: transparent; color: var(--fg);
+  font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800;
+  cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.sbtn:hover { background: var(--pink); border-color: var(--pink); color: #1c1a16; }
+.sbtn:disabled { opacity: 0.2; cursor: not-allowed; }
+
+.pips { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 1rem; }
+.pip {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--pink); transition: all 0.3s;
+}
+.pip.gone { background: var(--dim); transform: scale(0.6); }
+
+/* DATES */
+.date-list { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1rem; }
+.date-row {
+  display: flex; align-items: center; gap: 0.6rem;
+}
+.date-row input[type="date"] {
+  flex: 1;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  color: var(--fg);
+  font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 700;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.date-row input[type="date"]:focus { border-color: var(--pink); }
+.date-row input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.8); cursor: pointer; }
+.del-btn {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent; color: var(--mid);
+  font-size: 1rem; cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.del-btn:hover { background: rgba(232,160,180,0.2); border-color: var(--pink); color: var(--pink); }
+.add-btn {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-family: 'Syne Mono', monospace; font-size: 0.8rem;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--mid); background: transparent;
+  border: 1px dashed rgba(255,255,255,0.2); border-radius: 10px;
+  padding: 0.6rem 1rem; cursor: pointer; transition: all 0.2s;
+  width: 100%;
+}
+.add-btn:hover { border-color: var(--pink); color: var(--pink); }
+
+/* STATUS */
+.status-row { display: flex; align-items: center; gap: 0.8rem; margin-top: 0.4rem; }
+.stog-wrap { display: flex; gap: 0.5rem; flex: 1; }
+.stog-opt { position: relative; flex: 1; }
+.stog-opt input { position: absolute; opacity: 0; width: 0; }
+.stog-opt label {
+  display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  padding: 0.6rem 0.4rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px;
+  cursor: pointer; transition: all 0.15s;
+  font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+  color: var(--mid);
+}
+.stog-opt input:checked + label { background: var(--pink); border-color: var(--pink); color: #1c1a16; }
+
+/* SAVE */
+.save-btn {
+  display: block; width: 100%;
+  background: var(--pink); color: #1c1a16;
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem;
+  letter-spacing: 0.04em; border: none; border-radius: 999px;
+  padding: 0.9rem; cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+  margin-top: 0.4rem;
+}
+.save-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+.toast {
+  position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--blob); color: var(--fg);
+  font-family: 'Syne Mono', monospace; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.7rem 1.4rem; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.15);
+  opacity: 0; transition: all 0.3s;
+  pointer-events: none; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.divider { height: 1px; background: var(--dim); margin: 0.4rem 0; }
+
+.live-link {
+  font-family: 'Syne Mono', monospace; font-size: 0.8rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--mid); text-decoration: none; display: block;
+  text-align: center; padding: 0.5rem;
+  transition: color 0.2s;
+}
+.live-link:hover { color: var(--pink); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>Sourdough Joe<span>🍞</span>s</h1>
+    <p>Admin · batch settings</p>
+  </div>
+
+  <!-- SLOTS -->
+  <div class="card">
+    <div class="card-title">Slots this Sunday</div>
+    <div class="slots-display" id="slots-big">8</div>
+    <div class="slots-sub">loaves available</div>
+    <div class="slots-row">
+      <button class="sbtn" id="btn-minus" onclick="changeSlots(-1)">−</button>
+      <button class="sbtn" onclick="resetSlots()">↺</button>
+      <button class="sbtn" id="btn-plus" onclick="changeSlots(1)">+</button>
+    </div>
+    <div class="pips" id="pips"></div>
+  </div>
+
+  <!-- DATES -->
+  <div class="card">
+    <div class="card-title">Upcoming Sundays</div>
+    <div class="date-list" id="date-list"></div>
+    <button class="add-btn" onclick="addDate()">+ add date</button>
+  </div>
+
+  <!-- STATUS -->
+  <div class="card">
+    <div class="card-title">Order status</div>
+    <div class="stog-wrap">
+      <div class="stog-opt">
+        <input type="radio" name="status" id="st-open" value="open">
+        <label for="st-open">✅ Taking orders</label>
+      </div>
+      <div class="stog-opt">
+        <input type="radio" name="status" id="st-closed" value="closed">
+        <label for="st-closed">🔒 Closed</label>
+      </div>
+      <div class="stog-opt">
+        <input type="radio" name="status" id="st-sold" value="soldout">
+        <label for="st-sold">🙏 Sold out</label>
+      </div>
+    </div>
+  </div>
+
+  <button class="save-btn" onclick="saveAll()">Save & publish →</button>
+
+  <a href="index.html" class="live-link">← back to live site</a>
+
+</div>
+
+<div class="toast" id="toast">Saved ✓</div>
+
+<script>
+const SLOTS_KEY = 'sdj_slots_v2';
+const DATES_KEY = 'sdj_dates';
+const STATUS_KEY = 'sdj_status';
+const MAX = 8;
+
+let slots = parseInt(localStorage.getItem(SLOTS_KEY) ?? 8);
+let dates = JSON.parse(localStorage.getItem(DATES_KEY) ?? 'null') || getDefaultDates();
+let status = localStorage.getItem(STATUS_KEY) || 'open';
+
+function nextSunday(from) {
+  const d = new Date(from);
+  const day = d.getDay();
+  const daysUntilSunday = day === 0 ? 7 : 7 - day;
+  d.setDate(d.getDate() + daysUntilSunday);
+  return d;
+}
+
+function getDefaultDates() {
+  const sun = nextSunday(new Date());
+  return [0,1,2].map(i => {
+    const d = new Date(sun);
+    d.setDate(sun.getDate() + i * 7);
+    return d.toISOString().split('T')[0];
+  });
+}
+
+function renderSlots() {
+  const el = document.getElementById('slots-big');
+  el.textContent = slots;
+  el.className = 'slots-display' + (slots <= 2 ? ' warn' : '');
+  document.getElementById('btn-minus').disabled = slots <= 0;
+  document.getElementById('btn-plus').disabled = slots >= MAX;
+  const pips = document.getElementById('pips');
+  pips.innerHTML = Array.from({length: MAX}, (_, i) =>
+    `<div class="pip${i >= slots ? ' gone' : ''}"></div>`
+  ).join('');
+}
+
+function changeSlots(d) {
+  slots = Math.max(0, Math.min(MAX, slots + d));
+  renderSlots();
+}
+
+function resetSlots() {
+  slots = MAX;
+  renderSlots();
+}
+
+function renderDates() {
+  const list = document.getElementById('date-list');
+  list.innerHTML = dates.map((d, i) => `
+    <div class="date-row">
+      <input type="date" value="${d}" onchange="setDate(${i},this.value)">
+      <button class="del-btn" onclick="removeDate(${i})">×</button>
+    </div>
+  `).join('');
+}
+
+function setDate(i, val) {
+  const d = new Date(val);
+  if (d.getDay() !== 0) {
+    // snap to nearest Sunday
+    const day = d.getDay();
+    d.setDate(d.getDate() + (7 - day));
+    dates[i] = d.toISOString().split('T')[0];
+    renderDates();
+  } else {
+    dates[i] = val;
+  }
+}
+
+function addDate() {
+  const last = dates.length ? new Date(dates[dates.length - 1]) : new Date();
+  last.setDate(last.getDate() + 7);
+  // ensure it's a Sunday
+  const day = last.getDay();
+  if (day !== 0) last.setDate(last.getDate() + (7 - day));
+  dates.push(last.toISOString().split('T')[0]);
+  renderDates();
+}
+
+function removeDate(i) {
+  dates.splice(i, 1);
+  renderDates();
+}
+
+function renderStatus() {
+  document.querySelectorAll('input[name="status"]').forEach(r => {
+    r.checked = r.value === status;
+  });
+  document.querySelectorAll('input[name="status"]').forEach(r => {
+    r.addEventListener('change', () => status = r.value);
+  });
+}
+
+function saveAll() {
+  // collect current date input values
+  document.querySelectorAll('#date-list input[type=date]').forEach((el, i) => {
+    dates[i] = el.value;
+  });
+  localStorage.setItem(SLOTS_KEY, slots);
+  localStorage.setItem(DATES_KEY, JSON.stringify(dates));
+  localStorage.setItem(STATUS_KEY, status);
+  showToast('Saved ✓');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// init
+renderSlots();
+renderDates();
+renderStatus();
+</script>
+</body>
+</html>
